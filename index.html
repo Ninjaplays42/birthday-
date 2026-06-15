@@ -40,7 +40,78 @@
             z-index: 1;
         }
 
-        /* --- 5-SECOND COUNTDOWN OVERLAY (VERY START) --- */
+        /* --- WELCOME ENTRY GATE --- */
+        .entry-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0d020a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 250;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+
+        .entry-overlay.hide {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .entry-card {
+            text-align: center;
+            padding: 30px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #1f2647 0%, #111529 100%);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            max-width: 320px;
+            width: 90%;
+        }
+
+        .entry-card h2 {
+            color: #d4af37;
+            font-size: 1.6rem;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #ffe58f, #d4af37, #ffe58f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .entry-card p {
+            color: #ffffff;
+            font-family: sans-serif;
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+
+        .start-btn {
+            background: linear-gradient(90deg, #ffe58f, #d4af37);
+            color: #0d020a;
+            border: none;
+            padding: 14px 35px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(212,175,55,0.4);
+            letter-spacing: 1px;
+            transition: transform 0.2s ease;
+        }
+
+        .start-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* --- 5-SECOND COUNTDOWN OVERLAY --- */
         .countdown-overlay {
             position: fixed;
             top: 0;
@@ -55,7 +126,7 @@
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.5s ease;
-            background: rgba(13, 2, 10, 0.95); /* Deep dark background for the buildup */
+            background: rgba(13, 2, 10, 0.95); 
         }
 
         .countdown-overlay.show {
@@ -105,7 +176,6 @@
             z-index: 10;
         }
 
-        /* Revealed after countdown ends */
         .envelope-wrapper.reveal {
             opacity: 1;
             transform: scale(1);
@@ -226,7 +296,7 @@
             100% { transform: scale(1.05); filter: drop-shadow(0 0 15px rgba(212,175,55,0.5)); }
         }
 
-        .mic-instruction {
+        .tap-instruction {
             color: #ffffff;
             font-family: sans-serif;
             font-size: 0.85rem;
@@ -319,6 +389,7 @@
             background: linear-gradient(to right, #ff9800 0%, #ffeb3b 50%, #ff9800 100%);
             border-radius: 3px 3px 0 0;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            cursor: pointer; /* Makes it look clickable */
         }
 
         .flame {
@@ -451,24 +522,37 @@
 </head>
 <body>
 
+    <!-- Audio Element -->
     <audio id="bgMusic" loop>
         <source src="song.mpeg" type="audio/mpeg">
     </audio>
 
+    <!-- GATEWAY ENTRY CARD -->
+    <div class="entry-overlay" id="entryOverlay">
+        <div class="entry-card">
+            <h2>You Have An Invitation ✦</h2>
+            <p>Turn up your volume and step inside to celebrate a wonderful day.</p>
+            <button class="start-btn" onclick="initiateExperience()">Open Invitation</button>
+        </div>
+    </div>
+
+    <!-- 5-SECOND COUNTDOWN CONTAINER -->
     <div class="countdown-overlay" id="countdownOverlay">
         <div class="countdown-number" id="countdownNumber">5</div>
     </div>
 
+    <!-- Envelope Layout -->
     <div class="envelope-wrapper" id="envelope">
         <div class="envelope-text">
-            <h3>Happy Birthday</h3>
-            <p style="font-size: 0.55rem; margin-top: 12px; color: #d4af37; letter-spacing: 1px;">✦ Tap to Open ✦</p>
+            
+            <p style="font-size: 0.65rem; margin-top: 12px; color: #d4af37; letter-spacing: 1px;">✦ Tap to Open ✦</p>
         </div>
     </div>
 
+    <!-- Luxury Cake Layout -->
     <div class="cake-container" id="cakeContainer">
         <h1 class="birthday-text" id="mainTitle">Happy Birthday✨</h1>
-        <p class="mic-instruction" id="micStatus">🎤 Allowing microphone access...</p>
+        <p class="tap-instruction" id="tapStatus">👆 Tap the candles to blow them out!</p>
         
         <div class="cake">
             <div class="frosting-container">
@@ -489,6 +573,7 @@
         </div>
     </div>
 
+    <!-- POPUP MODAL -->
     <div class="modal-overlay" id="wishModal">
         <div class="wish-card">
             <h3>To A Special One! ✨</h3>
@@ -508,14 +593,15 @@
     </div>
 
     <script>
+        const entryOverlay = document.getElementById('entryOverlay');
         const envelope = document.getElementById('envelope');
         const cakeContainer = document.getElementById('cakeContainer');
         const countdownOverlay = document.getElementById('countdownOverlay');
         const countdownNumber = document.getElementById('countdownNumber');
         const mainTitle = document.getElementById('mainTitle');
         const wishModal = document.getElementById('wishModal');
-        const micStatus = document.getElementById('micStatus');
-        const bgMusic = document.getElementById('bgMusic'); // Music Element
+        const tapStatus = document.getElementById('tapStatus');
+        const bgMusic = document.getElementById('bgMusic');
         
         const candles = [
             document.getElementById('candle1'),
@@ -524,11 +610,16 @@
         ];
         
         let blownCount = 0;
-        let micInitialized = false;
 
-        window.addEventListener('DOMContentLoaded', () => {
+        function initiateExperience() {
+            entryOverlay.classList.add('hide');
+            
+            bgMusic.play().catch(error => {
+                console.log("Audio playback failed:", error);
+            });
+
             startTimerSequence();
-        });
+        }
 
         function startTimerSequence() {
             countdownOverlay.classList.add('show');
@@ -558,93 +649,34 @@
             countdownNumber.classList.add('countdown-animate');
         }
 
-        // Triggered when user clicks the Envelope
         envelope.addEventListener('click', () => {
             if(!envelope.classList.contains('reveal')) return; 
             
-            // ─── CRITICAL GITHUB AUTOPLAY FIX ───
-            // The browser will now completely allow the song to play because the user clicked!
-            bgMusic.play().catch(error => {
-                console.log("Audio playback failed to start initially:", error);
-            });
-
             envelope.classList.add('open');
             setTimeout(() => { envelope.classList.add('fade-out'); }, 700);
             
             setTimeout(() => { 
                 cakeContainer.classList.add('show'); 
-                initMicrophoneListener();
+                initCandleClickListeners();
             }, 1200);
         });
 
-        function initMicrophoneListener() {
-            if (micInitialized) return;
-            micInitialized = true;
-
-            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-            .then(function(stream) {
-                micStatus.innerText = "💨 Blow into your microphone to blow out the candles!";
-                
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const analyser = audioContext.createAnalyser();
-                const microphone = audioContext.createMediaStreamSource(stream);
-                const javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
-
-                analyser.smoothingTimeConstant = 0.8;
-                analyser.fftSize = 1024;
-
-                microphone.connect(analyser);
-                analyser.connect(javascriptNode);
-                javascriptNode.connect(audioContext.destination);
-
-                javascriptNode.onaudioprocess = function() {
-                    const array = new Uint8Array(analyser.frequencyBinCount);
-                    analyser.getByteFrequencyData(array);
-                    let values = 0;
-
-                    const length = array.length;
-                    for (let i = 0; i < length; i++) {
-                        values += array[i];
+        // Setup the manual click listeners for each candle directly
+        function initCandleClickListeners() {
+            candles.forEach(candle => {
+                candle.addEventListener('click', () => {
+                    if (!candle.classList.contains('blown-out')) {
+                        candle.classList.add('blown-out');
+                        blownCount++;
+                        checkGameEnd();
                     }
-
-                    const averageVolume = values / length;
-
-                    if (averageVolume > 55 && blownCount < 3) {
-                        blowNextCandle();
-                    }
-                };
-            })
-            .catch(function(err) {
-                console.log("Mic access error: ", err);
-                micStatus.innerText = "👆 Tap the candles directly to blow them out!";
-                
-                candles.forEach(candle => {
-                    candle.style.cursor = "pointer";
-                    candle.addEventListener('click', () => {
-                        if (!candle.classList.contains('blown-out')) {
-                            candle.classList.add('blown-out');
-                            blownCount++;
-                            checkGameEnd();
-                        }
-                    });
                 });
             });
         }
 
-        function blowNextCandle() {
-            if (blownCount < 3) {
-                const candleToBlow = candles[blownCount];
-                if (!candleToBlow.classList.contains('blown-out')) {
-                    candleToBlow.classList.add('blown-out');
-                    blownCount++;
-                    checkGameEnd();
-                }
-            }
-        }
-
         function checkGameEnd() {
             if (blownCount === 3) {
-                micStatus.style.display = 'none';
+                tapStatus.style.display = 'none';
                 
                 setTimeout(() => {
                     mainTitle.innerHTML = "👑 Happy Birthday! 👑";
