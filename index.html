@@ -1,0 +1,710 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Happy Birthday, Bestie!</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent; /* Removes flash on mobile clicks */
+        }
+
+        body {
+            background: radial-gradient(circle, #2b0821 0%, #0d020a 100%);
+            font-family: 'Cinzel', 'Georgia', serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            perspective: 1200px;
+            padding: 20px;
+        }
+
+        /* --- CLASSY CONFETTI BACKGROUND --- */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(rgba(212, 175, 55, 0.15) 1px, transparent 0),
+                radial-gradient(rgba(212, 175, 55, 0.1) 2px, transparent 0);
+            background-size: 30px 30px, 50px 50px;
+            opacity: 0.5;
+            z-index: 1;
+        }
+
+        /* --- 5-SECOND COUNTDOWN OVERLAY (VERY START) --- */
+        .countdown-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 150;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease;
+            background: rgba(13, 2, 10, 0.95); /* Deep dark background for the buildup */
+        }
+
+        .countdown-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .countdown-number {
+            font-size: 6rem;
+            font-weight: bold;
+            background: linear-gradient(90deg, #ffe58f, #d4af37, #ffe58f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 20px rgba(212,175,55,0.6));
+            transform: scale(0.5);
+            opacity: 0;
+        }
+
+        .countdown-animate {
+            animation: tickPop 1s ease-in-out;
+        }
+
+        @keyframes tickPop {
+            0% { transform: scale(0.3); opacity: 0; }
+            30% { transform: scale(1.1); opacity: 1; }
+            70% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.4); opacity: 0; }
+        }
+
+        /* --- MOBILE RESPONSIVE ENVELOPE --- */
+        .envelope-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 340px;
+            height: 220px;
+            background: linear-gradient(135deg, #161b33 0%, #0a0d1a 100%);
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.5s ease;
+            z-index: 10;
+        }
+
+        /* Revealed after countdown ends */
+        .envelope-wrapper.reveal {
+            opacity: 1;
+            transform: scale(1);
+            animation: floatEnvelope 4s ease-in-out infinite;
+        }
+
+        .envelope-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 170px solid transparent;
+            border-right: 170px solid transparent;
+            border-top: 125px solid #1f2647;
+            transform-origin: top;
+            transition: transform 0.6s ease-in-out;
+            z-index: 5;
+            filter: drop-shadow(0 4px 5px rgba(0,0,0,0.4));
+        }
+
+        @media(max-width: 360px) {
+            .envelope-wrapper::before {
+                border-left-width: 150px;
+                border-right-width: 150px;
+                border-top-width: 110px;
+            }
+        }
+
+        .envelope-text {
+            color: #d4af37;
+            text-align: center;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .envelope-text h2 {
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            background: linear-gradient(90deg, #ffe58f, #d4af37, #ffe58f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .envelope-text p {
+            font-family: sans-serif;
+            font-size: 0.8rem;
+            color: #ffffff;
+            opacity: 0.6;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .envelope-wrapper.open::before {
+            transform: rotateX(180deg) translateY(2px);
+            border-top-color: #161b33;
+        }
+
+        .envelope-wrapper.fade-out {
+            opacity: 0;
+            transform: scale(0.7) translateY(100px);
+            pointer-events: none;
+        }
+
+        @keyframes floatEnvelope {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        /* --- MOBILE RESPONSIVE CAKE LAYOUT --- */
+        .cake-container {
+            position: absolute;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0.5) translateY(50px);
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .cake-container.show {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: auto;
+        }
+
+        .birthday-text {
+            background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 99%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 50px;
+            text-align: center;
+            letter-spacing: 1px;
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
+            transition: all 0.6s ease;
+            padding: 0 10px;
+        }
+
+        .birthday-text.stylish-wish {
+            font-size: 2.2rem;
+            background: linear-gradient(90deg, #ffe58f 0%, #d4af37 50%, #ffe58f 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: pulseWish 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulseWish {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); filter: drop-shadow(0 0 15px rgba(212,175,55,0.5)); }
+        }
+
+        .mic-instruction {
+            color: #ffffff;
+            font-family: sans-serif;
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-top: -40px;
+            margin-bottom: 40px;
+            letter-spacing: 1px;
+            text-align: center;
+            animation: pulseText 1.5s infinite alternate;
+            position: relative;
+            top: 210px;
+        }
+
+        @keyframes pulseText {
+            0% { opacity: 0.4; }
+            100% { opacity: 0.9; }
+        }
+
+        .cake {
+            position: relative;
+            width: 220px;
+            height: 130px;
+            background: linear-gradient(to right, #e8a7b5 0%, #f7cbd5 50%, #e8a7b5 100%);
+            border-radius: 15px 15px 10px 10px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5), inset 0 10px 15px rgba(255,255,255,0.4);
+        }
+
+        .cake::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: -15px;
+            width: 250px;
+            height: 15px;
+            background: linear-gradient(to right, #eaeaea, #ffffff, #eaeaea);
+            border-radius: 50%;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.4);
+            z-index: -1;
+        }
+
+        .dripping-cream {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            height: 30px;
+            background: #4a2c11;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .dripping-cream::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 15px;
+            background-image: radial-gradient(circle at 11px 0, #4a2c11 12px, transparent 13px);
+            background-size: 22px 30px;
+            top: 28px;
+        }
+
+        .frosting-container {
+            position: absolute;
+            top: -10px;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            padding: 0 5px;
+        }
+
+        .swirl {
+            width: 24px;
+            height: 18px;
+            background: radial-gradient(circle at 50% 20%, #ffffff 0%, #f4b2c1 80%);
+            border-radius: 50%;
+        }
+
+        /* --- CANDLES --- */
+        .candles-row {
+            position: absolute;
+            top: -45px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+        }
+
+        .candle {
+            position: relative;
+            width: 8px;
+            height: 50px;
+            background: linear-gradient(to right, #ff9800 0%, #ffeb3b 50%, #ff9800 100%);
+            border-radius: 3px 3px 0 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .flame {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 22px;
+            background: radial-gradient(ellipse at bottom, #fff 0%, #ffeb3b 40%, #ff5722 80%, transparent 100%);
+            border-radius: 50% 50% 20% 20%;
+            box-shadow: 0 0 12px #ffeb3b, 0 0 25px #ff5722;
+            animation: realisticFlicker 0.5s infinite alternate;
+            transform-origin: bottom center;
+        }
+
+        .candle.blown-out .flame { display: none; }
+
+        .smoke {
+            display: none;
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 5px;
+            height: 5px;
+            background: rgba(220, 220, 220, 0.6);
+            border-radius: 50%;
+        }
+
+        .candle.blown-out .smoke {
+            display: block;
+            animation: realisticSmoke 1.2s ease-out forwards;
+        }
+
+        @keyframes realisticFlicker {
+            0% { transform: translateX(-50%) scale(1) rotate(-1deg); }
+            100% { transform: translateX(-50%) scale(1.1) rotate(1.5deg); }
+        }
+
+        @keyframes realisticSmoke {
+            0% { transform: translateX(-50%) translateY(0) scale(1); opacity: 0.6; }
+            100% { transform: translateX(-10%) translateY(-40px) scale(3.5); opacity: 0; filter: blur(2px); }
+        }
+
+        /* --- MOBILE PRINGLES RAIN --- */
+        .pringle {
+            position: absolute;
+            width: 45px;
+            height: 28px;
+            background: radial-gradient(ellipse at center, #f4d068 0%, #dfb233 100%);
+            border-radius: 50% 50% 45% 45%;
+            box-shadow: inset 0 -3px 6px rgba(0,0,0,0.15), 0 8px 12px rgba(0,0,0,0.3);
+            top: -50px;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        /* --- MOBILE WISH POPUP MODAL --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(13, 2, 10, 0.9);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease-in-out;
+            z-index: 200;
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .wish-card {
+            background: linear-gradient(135deg, #1f2647 0%, #111529 100%);
+            border: 2px solid #d4af37;
+            padding: 30px 20px;
+            width: 100%;
+            max-width: 340px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+            transform: scale(0.8);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .modal-overlay.show .wish-card {
+            transform: scale(1);
+        }
+
+        .wish-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            background: linear-gradient(90deg, #ffe58f, #d4af37, #ffe58f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .wish-card p {
+            color: #ffffff;
+            font-family: 'Georgia', serif;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            opacity: 0.9;
+        }
+
+        .close-btn {
+            background: linear-gradient(90deg, #ffe58f, #d4af37);
+            color: #0d020a;
+            border: none;
+            padding: 12px 30px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(212,175,55,0.3);
+        }
+    </style>
+</head>
+<body>
+  <audio autoplay loop>
+    <source src="song.mpeg" type="audio/mpeg">
+</audio>
+    <!-- STARTING 5-SECOND COUNTDOWN CONTAINER (HAPPENS FIRST) -->
+    <div class="countdown-overlay" id="countdownOverlay">
+        <div class="countdown-number" id="countdownNumber">5</div>
+    </div>
+
+    <!-- Classy Metallic Envelope Layout -->
+    <div class="envelope-wrapper" id="envelope">
+        <div class="envelope-text">
+            <h3>Happy Birthday</h3>
+            <p style="font-size: 0.55rem; margin-top: 12px; color: #d4af37; letter-spacing: 1px;">✦ Tap to Open ✦</p>
+        </div>
+    </div>
+
+    <!-- Realistic Luxury Cake Layout -->
+    <div class="cake-container" id="cakeContainer">
+        <h1 class="birthday-text" id="mainTitle">Happy Birthday✨</h1>
+        <p class="mic-instruction" id="micStatus">🎤 Allowing microphone access...</p>
+        
+        <div class="cake">
+            <div class="frosting-container">
+                <div class="swirl"></div>
+                <div class="swirl"></div>
+                <div class="swirl"></div>
+                <div class="swirl"></div>
+                <div class="swirl"></div>
+            </div>
+
+            <div class="dripping-cream"></div>
+
+            <div class="candles-row">
+                <div class="candle" id="candle1"><div class="flame"></div><div class="smoke"></div></div>
+                <div class="candle" id="candle2"><div class="flame"></div><div class="smoke"></div></div>
+                <div class="candle" id="candle3"><div class="flame"></div><div class="smoke"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PREMIUM WISHING MESSAGE POPUP -->
+    <div class="modal-overlay" id="wishModal">
+        <div class="wish-card">
+            <h3>To A Special One! ✨</h3>
+            <p>
+               Happy birthday to you! 🎉🎂
+
+Today is a very special day, and I pray from my heart that every day of your life is as beautiful as today. May you always stay happy, be blessed with good health and a long life, and may all your dreams come true.
+
+The way you take care of everyone, may you be taken care of in the same way. Always keep smiling like this and keep spreading your light to the world.
+
+Today eat lots of cake, enjoy your gifts, and celebrate to the fullest. This day won’t come again.
+
+Happy birthday once again! Hope you have an amazing day 😊 🍟🎉
+            </p>
+            <button class="close-btn" onclick="closePopup()">Thank You! ❤️</button>
+        </div>
+    </div>
+
+    <script>
+        const envelope = document.getElementById('envelope');
+        const cakeContainer = document.getElementById('cakeContainer');
+        const countdownOverlay = document.getElementById('countdownOverlay');
+        const countdownNumber = document.getElementById('countdownNumber');
+        const mainTitle = document.getElementById('mainTitle');
+        const wishModal = document.getElementById('wishModal');
+        const micStatus = document.getElementById('micStatus');
+        
+        const candles = [
+            document.getElementById('candle1'),
+            document.getElementById('candle2'),
+            document.getElementById('candle3')
+        ];
+        
+        let blownCount = 0;
+        let micInitialized = false;
+
+        // Automatically trigger countdown at the VERY start of window loading
+        window.addEventListener('DOMContentLoaded', () => {
+            startTimerSequence();
+        });
+
+        // Step 1: Run Countdown
+        function startTimerSequence() {
+            countdownOverlay.classList.add('show');
+            let timeLeft = 5;
+            
+            runTickAnimation(timeLeft);
+
+            const interval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft > 0) {
+                    runTickAnimation(timeLeft);
+                } else {
+                    clearInterval(interval);
+                    countdownOverlay.classList.remove('show');
+                    
+                    // Reveal envelope smoothly once countdown hits 0
+                    setTimeout(() => {
+                        envelope.classList.add('reveal');
+                    }, 400);
+                }
+            }, 1000);
+        }
+
+        function runTickAnimation(number) {
+            countdownNumber.innerText = number;
+            countdownNumber.classList.remove('countdown-animate');
+            void countdownNumber.offsetWidth; // Trigger reflow
+            countdownNumber.classList.add('countdown-animate');
+        }
+
+        // Step 2: Open Envelope -> Show Cake -> Setup Mic
+        envelope.addEventListener('click', () => {
+            if(!envelope.classList.contains('reveal')) return; // Block click if ticking
+            
+            envelope.classList.add('open');
+            setTimeout(() => { envelope.classList.add('fade-out'); }, 700);
+            
+            setTimeout(() => { 
+                cakeContainer.classList.add('show'); 
+                initMicrophoneListener();
+            }, 1200);
+        });
+
+        // Step 3: Advanced Microphone Blowing Detector Loop
+        function initMicrophoneListener() {
+            if (micInitialized) return;
+            micInitialized = true;
+
+            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+            .then(function(stream) {
+                micStatus.innerText = "💨 Blow into your microphone to blow out the candles!";
+                
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const analyser = audioContext.createAnalyser();
+                const microphone = audioContext.createMediaStreamSource(stream);
+                const javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+
+                analyser.smoothingTimeConstant = 0.8;
+                analyser.fftSize = 1024;
+
+                microphone.connect(analyser);
+                analyser.connect(javascriptNode);
+                javascriptNode.connect(audioContext.destination);
+
+                javascriptNode.onaudioprocess = function() {
+                    const array = new Uint8Array(analyser.frequencyBinCount);
+                    analyser.getByteFrequencyData(array);
+                    let values = 0;
+
+                    const length = array.length;
+                    for (let i = 0; i < length; i++) {
+                        values += array[i];
+                    }
+
+                    const averageVolume = values / length;
+
+                    // Decibel check
+                    if (averageVolume > 55 && blownCount < 3) {
+                        blowNextCandle();
+                    }
+                };
+            })
+            .catch(function(err) {
+                console.log("Mic access error: ", err);
+                micStatus.innerText = "👆 Tap the candles directly to blow them out!";
+                
+                // Manual backup tapping engine if permission blocked
+                candles.forEach(candle => {
+                    candle.style.cursor = "pointer";
+                    candle.addEventListener('click', () => {
+                        if (!candle.classList.contains('blown-out')) {
+                            candle.classList.add('blown-out');
+                            blownCount++;
+                            checkGameEnd();
+                        }
+                    });
+                });
+            });
+        }
+
+        function blowNextCandle() {
+            if (blownCount < 3) {
+                const candleToBlow = candles[blownCount];
+                if (!candleToBlow.classList.contains('blown-out')) {
+                    candleToBlow.classList.add('blown-out');
+                    blownCount++;
+                    checkGameEnd();
+                }
+            }
+        }
+
+        function checkGameEnd() {
+            if (blownCount === 3) {
+                micStatus.style.display = 'none';
+                
+                setTimeout(() => {
+                    mainTitle.innerHTML = "👑 Happy Birthday! 👑";
+                    mainTitle.classList.add('stylish-wish');
+                    startPringlesRain();
+                }, 500);
+
+                setTimeout(() => {
+                    wishModal.classList.add('show');
+                }, 1800);
+            }
+        }
+
+        function closePopup() {
+            wishModal.classList.remove('show');
+        }
+
+        function startPringlesRain() {
+            const totalChips = window.innerWidth < 480 ? 35 : 55;
+            for (let i = 0; i < totalChips; i++) {
+                setTimeout(() => { createPringleChip(); }, i * 160);
+            }
+        }
+
+        function createPringleChip() {
+            const chip = document.createElement('div');
+            chip.classList.add('pringle');
+            chip.style.left = Math.random() * window.innerWidth + 'px';
+            
+            const scale = 0.5 + Math.random() * 0.5;
+            const startRotationX = Math.random() * 360;
+            const startRotationY = Math.random() * 360;
+            const spinSpeedX = (Math.random() - 0.5) * 3;
+            const spinSpeedY = (Math.random() - 0.5) * 5;
+
+            document.body.appendChild(chip);
+
+            let currentTop = -50;
+            let currentRotationX = startRotationX;
+            let currentRotationY = startRotationY;
+            const fallSpeed = 2.5 + Math.random() * 3.5;
+
+            function fall() {
+                currentTop += fallSpeed;
+                currentRotationX += spinSpeedX;
+                currentRotationY += spinSpeedY;
+
+                chip.style.top = currentTop + 'px';
+                chip.style.transform = `scale(${scale}) rotateX(${currentRotationX}deg) rotateY(${currentRotationY}deg)`;
+
+                if (currentTop < window.innerHeight + 50) {
+                    requestAnimationFrame(fall);
+                } else {
+                    chip.remove();
+                }
+            }
+            requestAnimationFrame(fall);
+        }
+    </script>
+</body>
+</html>
