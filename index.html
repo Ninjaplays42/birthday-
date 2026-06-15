@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -144,7 +143,7 @@
             pointer-events: none;
         }
 
-        .envelope-text h2 {
+        .envelope-text h3 {
             font-size: 1.8rem;
             letter-spacing: 2px;
             text-transform: uppercase;
@@ -451,15 +450,15 @@
     </style>
 </head>
 <body>
-  <audio autoplay loop>
-    <source src="song.mp3" type="audio/mpeg">
-</audio>
-    <!-- STARTING 5-SECOND COUNTDOWN CONTAINER (HAPPENS FIRST) -->
+
+    <audio id="bgMusic" loop>
+        <source src="song.mpeg" type="audio/mpeg">
+    </audio>
+
     <div class="countdown-overlay" id="countdownOverlay">
         <div class="countdown-number" id="countdownNumber">5</div>
     </div>
 
-    <!-- Classy Metallic Envelope Layout -->
     <div class="envelope-wrapper" id="envelope">
         <div class="envelope-text">
             <h3>Happy Birthday</h3>
@@ -467,7 +466,6 @@
         </div>
     </div>
 
-    <!-- Realistic Luxury Cake Layout -->
     <div class="cake-container" id="cakeContainer">
         <h1 class="birthday-text" id="mainTitle">Happy Birthday✨</h1>
         <p class="mic-instruction" id="micStatus">🎤 Allowing microphone access...</p>
@@ -491,20 +489,19 @@
         </div>
     </div>
 
-    <!-- PREMIUM WISHING MESSAGE POPUP -->
     <div class="modal-overlay" id="wishModal">
         <div class="wish-card">
             <h3>To A Special One! ✨</h3>
             <p>
                Happy birthday to you! 🎉🎂
-
-Today is a very special day, and I pray from my heart that every day of your life is as beautiful as today. May you always stay happy, be blessed with good health and a long life, and may all your dreams come true.
-
-The way you take care of everyone, may you be taken care of in the same way. Always keep smiling like this and keep spreading your light to the world.
-
-Today eat lots of cake, enjoy your gifts, and celebrate to the fullest. This day won’t come again.
-
-Happy birthday once again! Hope you have an amazing day 😊 🍟🎉
+               <br><br>
+               Today is a very special day, and I pray from my heart that every day of your life is as beautiful as today. May you always stay happy, be blessed with good health and a long life, and may all your dreams come true.
+               <br><br>
+               The way you take care of everyone, may you be taken care of in the same way. Always keep smiling like this and keep spreading your light to the world.
+               <br><br>
+               Today eat lots of cake, enjoy your gifts, and celebrate to the fullest. This day won’t come again.
+               <br><br>
+               Happy birthday once again! Hope you have an amazing day 😊 🍟🎉
             </p>
             <button class="close-btn" onclick="closePopup()">Thank You! ❤️</button>
         </div>
@@ -518,6 +515,7 @@ Happy birthday once again! Hope you have an amazing day 😊 🍟🎉
         const mainTitle = document.getElementById('mainTitle');
         const wishModal = document.getElementById('wishModal');
         const micStatus = document.getElementById('micStatus');
+        const bgMusic = document.getElementById('bgMusic'); // Music Element
         
         const candles = [
             document.getElementById('candle1'),
@@ -528,12 +526,10 @@ Happy birthday once again! Hope you have an amazing day 😊 🍟🎉
         let blownCount = 0;
         let micInitialized = false;
 
-        // Automatically trigger countdown at the VERY start of window loading
         window.addEventListener('DOMContentLoaded', () => {
             startTimerSequence();
         });
 
-        // Step 1: Run Countdown
         function startTimerSequence() {
             countdownOverlay.classList.add('show');
             let timeLeft = 5;
@@ -548,7 +544,6 @@ Happy birthday once again! Hope you have an amazing day 😊 🍟🎉
                     clearInterval(interval);
                     countdownOverlay.classList.remove('show');
                     
-                    // Reveal envelope smoothly once countdown hits 0
                     setTimeout(() => {
                         envelope.classList.add('reveal');
                     }, 400);
@@ -559,14 +554,20 @@ Happy birthday once again! Hope you have an amazing day 😊 🍟🎉
         function runTickAnimation(number) {
             countdownNumber.innerText = number;
             countdownNumber.classList.remove('countdown-animate');
-            void countdownNumber.offsetWidth; // Trigger reflow
+            void countdownNumber.offsetWidth; 
             countdownNumber.classList.add('countdown-animate');
         }
 
-        // Step 2: Open Envelope -> Show Cake -> Setup Mic
+        // Triggered when user clicks the Envelope
         envelope.addEventListener('click', () => {
-            if(!envelope.classList.contains('reveal')) return; // Block click if ticking
+            if(!envelope.classList.contains('reveal')) return; 
             
+            // ─── CRITICAL GITHUB AUTOPLAY FIX ───
+            // The browser will now completely allow the song to play because the user clicked!
+            bgMusic.play().catch(error => {
+                console.log("Audio playback failed to start initially:", error);
+            });
+
             envelope.classList.add('open');
             setTimeout(() => { envelope.classList.add('fade-out'); }, 700);
             
@@ -576,7 +577,6 @@ Happy birthday once again! Hope you have an amazing day 😊 🍟🎉
             }, 1200);
         });
 
-        // Step 3: Advanced Microphone Blowing Detector Loop
         function initMicrophoneListener() {
             if (micInitialized) return;
             micInitialized = true;
@@ -609,7 +609,6 @@ Happy birthday once again! Hope you have an amazing day 😊 🍟🎉
 
                     const averageVolume = values / length;
 
-                    // Decibel check
                     if (averageVolume > 55 && blownCount < 3) {
                         blowNextCandle();
                     }
@@ -619,7 +618,6 @@ Happy birthday once again! Hope you have an amazing day 😊 🍟🎉
                 console.log("Mic access error: ", err);
                 micStatus.innerText = "👆 Tap the candles directly to blow them out!";
                 
-                // Manual backup tapping engine if permission blocked
                 candles.forEach(candle => {
                     candle.style.cursor = "pointer";
                     candle.addEventListener('click', () => {
